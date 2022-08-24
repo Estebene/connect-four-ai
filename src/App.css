@@ -1,0 +1,27 @@
+#root {
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+td {
+  border: 1px solid rgb(49, 43, 43);
+  height: 50px;
+  width: 50px;
+  text-align: center;
+}
+
+.yellow {
+  background-color: rgb(255, 255, 0);
+}
+
+.red {
+  background-color: rgb(255, 0, 0);
+}
