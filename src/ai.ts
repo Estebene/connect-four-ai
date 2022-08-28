@@ -18,10 +18,13 @@ export class GameNode {
         this.fullyExpanded = false
     }
 
-    printChildren(level: number = 0) {
-        console.log("   ".repeat(level) + `${this.move}: ${this.won}/${this.total}`)
+    printChildren(maxLevel: number = 10000, level: number = 0) {
+        console.log("   ".repeat(level) + `${this.move}: ${this.won.toFixed(1)}/${this.total}`)
+        if (level > maxLevel) {
+            return
+        }
         for (let child of this.children) {
-            child.printChildren(level + 1)
+            child.printChildren(maxLevel, level + 1)
         }
     }
 }
@@ -52,6 +55,9 @@ export class Tree {
         // console.log(cells.map((arr) => arr.slice()))
         let [,, row] = addPieceNoCopy(cells, play, player);
         // console.log(cells.map((arr) => arr.slice()))
+        console.log(`Parent: ${node.parent ? node.parent.move : ''},Play: ${play}`)
+        console.log(cells)
+        console.log(isTerminal(cells, row, play))
 
         if (isTerminal(cells, row, play) == -1) {
             node.children.push(new GameNode(node, play))
@@ -65,14 +71,19 @@ export class Tree {
 
     playout(cells: number[][], player: number): number {
         let state = -1
+        let turn = 0
         while (state == -1) {
             let column = getRandomPlay(cells)
             let [,,row] = addPieceNoCopy(cells, column, player)
             player = player == 2 ? 1 : 2
             state = isTerminal(cells, row, column)
+            turn++
         }
         // assume computer is player 2
-        return state == 0 ? 0.3 : (state == 2 ? 1 : 0)
+        let base_utility = state == 0 ? -0.3 : (state == 2 ? 1 : -1)
+        let turn_factor = 1/turn 
+        base_utility -= turn_factor
+        return base_utility
     }
 
     backPropagate(node: GameNode, utility: number) {
@@ -113,7 +124,7 @@ function getRandomPlay(grid: number[][], blacklist: number[] = []): number {
         }
     }
     let play = plays[getRandomInt(plays.length - 1)]
-    // console.log(plays, plays.length, play)o
+    // console.log(plays, plays.length, play)
     return play 
 }
 

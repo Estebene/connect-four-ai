@@ -18,47 +18,9 @@ function App() {
         <tbody>
           <tr>
             {Array(COLS).fill(0).map((_, i) => (
-              <td key={i} onClick={() => {
-                let [new_grid, success, row] = addPiece(game_grid, i, 1)
-                // console.log(`move: ${i}`)
-                let child = tree.root.children.find((child) => child.move == i)
-                // console.log(`length ${tree.root.children.length}`)
-                tree.root.children.forEach((child) => console.log(child.move))
-                tree.root = child ? child : new GameNode(tree.root, 5)
-                if (child) {
-                  // console.log("child1")
-                } else {
-                  tree.root.total = 1000
-                }
-                if (success) {
-                  setGrid(new_grid)
-                  if(isTerminal(new_grid, row, i) != -1) {
-                    console.log("Game Over" + isTerminal(new_grid, row, i))
-                  } else {
-                    let move = getNextMove(tree, new_grid);
-                    let child1 = tree.root.children.find((child) => child.move == move)
-                    tree.root = child1 ? child1 : new GameNode(tree.root, 5)
-                    if (child1) {
-                      // console.log("child2")
-                      // console.log(tree.root.printChildren())
-                    } else {
-                      tree.root.total = 1000
-                    }
-                    setTree(tree);
-                    // console.log(move);
-                    [new_grid, success, row] = addPiece(new_grid, move, 2)
-                    // console.log(success)
-                    if (success) {
-                      // console.log(new_grid)
-                      setGrid(new_grid)
-                      if(isTerminal(new_grid, row, i) != -1) {
-                        console.log("Game Over" + isTerminal(new_grid, row, i))
-                      }
-                    }
-                  }
-                }
-              }
-              }></td>
+              <td key={i} onClick={() => {handlePlay(i)}}>
+              
+              </td>
             ))}
           </tr>
         </tbody>
@@ -76,10 +38,45 @@ function App() {
      </table>
     </div>
   )
+
+  function handlePlay(i: number) {
+    let [new_grid, success, row] = addPiece(game_grid, i, 1)
+    // console.log(`move: ${i}`)
+    let child = tree.root.children.find((child) => child.move == i)
+    // console.log(`length ${tree.root.children.length}`)
+    tree.root.children.forEach((child) => console.log(child.move))
+    tree.root = child ? child : new GameNode(tree.root, 5)
+    if (child) {
+      // console.log("child1")
+    } else {
+      tree.root.total = 1000
+    }
+    if (success) {
+      setGrid(new_grid)
+      if(isTerminal(new_grid, row, i) != -1) {
+        console.log("Game Over" + isTerminal(new_grid, row, i))
+      } else {
+        let move = getNextMove(tree, new_grid);
+        let child1 = tree.root.children.find((child) => child.move == move)
+        tree.root = child1 ? child1 : new GameNode(tree.root, 5)
+        if (child1) {
+          // console.log("child2")
+          // console.log(tree.root.printChildren())
+        } else {
+          tree.root.total = 1000
+        }
+        // console.log(move);
+        [new_grid, success, row] = addPiece(new_grid, move, 2)
+        if (success) {
+          if(isTerminal(new_grid, row, move) != -1) {
+            console.log("Game Over" + isTerminal(new_grid, row, move))
+          }
+          setTree(tree);
+          setGrid(new_grid)
+        }
+      }
+    }
+  }
 }
-
-
-
-
 
 export default App

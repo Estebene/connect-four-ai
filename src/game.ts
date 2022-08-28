@@ -92,7 +92,7 @@ export function getNextMove(tree: Tree, grid: number[][]): number {
   for (let i = 0; i < 100; i++) {
     tree.update()
   }
-  tree.root.printChildren()
+  tree.root.printChildren(1)
   return max(tree.root.children, (child: GameNode) => child.total).move
 }
 
