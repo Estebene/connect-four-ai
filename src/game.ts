@@ -1,3 +1,5 @@
+import {Tree, GameNode} from './ai'
+import {max} from './utilities'
 
 const ROWS = 6
 const COLS = 7
@@ -83,6 +85,18 @@ export function possiblePlayCount(grid: number[][]): number {
   }
   return count
 }
+
+export function getNextMove(tree: Tree, grid: number[][]): number {
+  // console.log("new")
+  // console.log(grid.map(arr => arr.slice()))
+  for (let i = 0; i < 100; i++) {
+    tree.update()
+  }
+  tree.root.printChildren()
+  return max(tree.root.children, (child: GameNode) => child.total).move
+}
+
+
 
 
 
