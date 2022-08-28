@@ -40,42 +40,35 @@ function App() {
   )
 
   function handlePlay(i: number) {
+    let new_grid = playTurns(i);
+    setTree(tree);
+    setGrid(new_grid)
+  }
+
+  function playTurns(i: number) {
     let [new_grid, success, row] = addPiece(game_grid, i, 1)
-    // console.log(`move: ${i}`)
-    let child = tree.root.children.find((child) => child.move == i)
-    // console.log(`length ${tree.root.children.length}`)
-    tree.root.children.forEach((child) => console.log(child.move))
+    if (!success) return new_grid
+    changeToChild(tree, i)
+    if (checkEnd(new_grid, row, i)) return new_grid
+    let move = getNextMove(tree, new_grid);
+    changeToChild(tree, move);
+    [new_grid,, row] = addPiece(new_grid, move, 2)
+    checkEnd(new_grid, row, move)
+    return new_grid
+  }
+
+  function changeToChild(tree: Tree, move: number) {
+    let child = tree.root.children.find((child) => child.move == move)
     tree.root = child ? child : new GameNode(tree.root, 5)
-    if (child) {
-      // console.log("child1")
-    } else {
-      tree.root.total = 1000
+  }
+
+  function checkEnd(grid: number[][], row: number, i: number): boolean{
+    let terminality = isTerminal(grid, row, i)
+    if(terminality != -1) {
+      console.log("Game Over: " + terminality)
+      return true
     }
-    if (success) {
-      setGrid(new_grid)
-      if(isTerminal(new_grid, row, i) != -1) {
-        console.log("Game Over" + isTerminal(new_grid, row, i))
-      } else {
-        let move = getNextMove(tree, new_grid);
-        let child1 = tree.root.children.find((child) => child.move == move)
-        tree.root = child1 ? child1 : new GameNode(tree.root, 5)
-        if (child1) {
-          // console.log("child2")
-          // console.log(tree.root.printChildren())
-        } else {
-          tree.root.total = 1000
-        }
-        // console.log(move);
-        [new_grid, success, row] = addPiece(new_grid, move, 2)
-        if (success) {
-          if(isTerminal(new_grid, row, move) != -1) {
-            console.log("Game Over" + isTerminal(new_grid, row, move))
-          }
-          setTree(tree);
-          setGrid(new_grid)
-        }
-      }
-    }
+    return false
   }
 }
 
