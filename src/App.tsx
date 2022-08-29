@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import './App.css'
 import { Tree, GameNode, getRandomInt, getRandomPlay } from './ai'
 import {isTerminal, createGrid, addPiece, getNextMove} from './game'
@@ -15,28 +15,13 @@ function App() {
 
   useEffect(() => {
     if (pending) {
-      opponentMove(game_grid).then(([new_grid, new_tree]) => {
+      opponentMove(game_grid, tree).then(([new_grid, new_tree]) => {
         setTree(new_tree)
         setGrid(new_grid)
         setPending(false)
       }) 
     }
- }, [pending])
-
-  
-  // let tree2 = new Tree(new GameNode(null, 2), array3, 2)
-  // tree2.root.children.push(new GameNode(tree2.root, 1))
-  // tree2.root.children.push(new GameNode(tree2.root, 2))
-  // tree2.root.children.push(new GameNode(tree2.root, 3))
-  // tree2.root.children.push(new GameNode(tree2.root, 4))
-  // tree2.root.children.push(new GameNode(tree2.root, 5))
-  // tree2.root.children.push(new GameNode(tree2.root, 6))
-  // tree2.root.children.push(new GameNode(tree2.root, 0))
-  // for (let i = 0; i < 100; i++) {
-  //   tree2.update()
-  // }
-  // tree2.root.printChildren()
-
+ }, [game_grid])
 
     return (
     <div className="App">
@@ -63,40 +48,43 @@ function App() {
     </div>
   )
 
-  function opponentMove(grid2: number[][]) {
+  function opponentMove(grid2: number[][], tree2: Tree) {
     return new Promise<[number[][], Tree]>(async (resolve, reject) => {
-      let move = getNextMove(tree, grid2);
-      changeToChild(tree, move);
+      await new Promise<void>((resolve) => setTimeout(resolve, 100))
+      let move = await getNextMove(tree2, grid2);
+      // let move = 0;
+      // await new Promise(resolve => setTimeout(resolve, 1000))
+      let new_tree = changeToChild(tree2, move);
       let [new_grid,,row] = addPiece(grid2, move, 2)
       checkEnd(new_grid, row, move)
-      resolve([new_grid, tree])
+      resolve([new_grid, new_tree])
     })
   }
 
   function handlePlay(i: number) {
-    let new_grid = playTurns(i);
-    setTree(tree);
-    flushSync(() => {
-      setGrid(new_grid);
-    })
+    let [new_grid, new_tree]= playTurns(i);
+    setTree(new_tree);
     setPending(true);
+    setGrid(new_grid);
   }
 
   function playTurns(i: number) {
     let [new_grid, success, row] = addPiece(game_grid, i, 1)
     if (!success) return new_grid
-    changeToChild(tree, i)
+    let new_tree = changeToChild(tree, i)
     if (checkEnd(new_grid, row, i)) return new_grid
     // let move = getNextMove(tree, new_grid);
     // changeToChild(tree, move);
     // [new_grid,, row] = addPiece(new_grid, move, 2)
     // checkEnd(new_grid, row, move)
-    return new_grid
+    return [new_grid, new_tree]
   }
 
   function changeToChild(tree: Tree, move: number) {
     let child = tree.root.children.find((child) => child.move == move)
-    tree.root = child ? child : new GameNode(tree.root, 5)
+    let new_tree = new Tree(new GameNode(null, 5), 2)
+    new_tree.root = child ? child : new GameNode(tree.root, 5)
+    return new_tree
   }
 
   function checkEnd(grid: number[][], row: number, i: number): boolean{
