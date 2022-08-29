@@ -11,6 +11,20 @@ table {
   border-spacing: 0;
 }
 
+.topTable {
+  border: 1px solid rgb(0, 0, 0);
+  width: 100%
+}
+
+.hoverButton {
+  border: 0px
+}
+
+.hoverButton:hover {
+  background-color: yellow;
+  border: 1px solid rgb(0, 0, 0);
+}
+
 td {
   border: 1px solid rgb(49, 43, 43);
   height: 50px;

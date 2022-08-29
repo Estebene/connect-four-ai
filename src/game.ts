@@ -88,11 +88,11 @@ export function possiblePlayCount(grid: number[][]): number {
 
 export function getNextMove(tree: Tree, grid: number[][]): number {
   // console.log("new")
-  // console.log(grid.map(arr => arr.slice()))
-  for (let i = 0; i < 100; i++) {
-    tree.update()
+  console.log(grid.map(arr => arr.slice()))
+  for (let i = 0; i < 100000; i++) {
+    tree.update(grid)
   }
-  tree.root.printChildren(1)
+  // tree.root.printChildren(1)
   return max(tree.root.children, (child: GameNode) => child.total).move
 }
 

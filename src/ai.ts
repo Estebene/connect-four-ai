@@ -7,15 +7,15 @@ export class GameNode {
     move: number
     parent: GameNode | null
     children: GameNode[]
-    fullyExpanded: boolean
+    terminality: number
 
-    constructor(parent: GameNode | null, move: number, ) {
+    constructor(parent: GameNode | null, move: number, terminality: number = -1) {
         this.parent = parent
         this.move = move
         this.children = []
         this.won = 0
         this.total = 0
-        this.fullyExpanded = false
+        this.terminality = terminality
     }
 
     printChildren(maxLevel: number = 10000, level: number = 0) {
@@ -31,41 +31,43 @@ export class GameNode {
 
 export class Tree {
     root: GameNode
-    grid: number[][]
     player: number
 
-    constructor(root: GameNode, grid: number[][], player: number) {
+    constructor(root: GameNode, player: number) {
         this.root = root
-        this.grid = grid
         this.player = player
     }
 
-    select(): [GameNode, number[][], number] {
-        let cells = this.grid.map((arr) => arr.slice())
-        // console.log(cells.map((arr) => arr.slice()))
+    select(grid: number[][]): [GameNode, number[][], number] {
+        let cells = grid.map((arr) => arr.slice())
+        let save = cells.map((arr) => arr.slice())
         let node = this.root
-        let player = this.player
-        while (node.children.length == possiblePlayCount(cells) && node.children.length != 0) {
+        let player = 2
+        let level = 0
+        while (node.children.length == possiblePlayCount(cells) && node.children.length != 0 && node.terminality == -1) {
             node = max(node.children, (child: GameNode) => UCB1(node, child, player));
             // console.log(node.move)
             addPieceNoCopy(cells, node.move, player)
             player = player == 1 ? 2 : 1
+            level++
+        }
+        if (node.terminality != -1) {
+            return [node, cells, player]
         }
         let play = getRandomPlay(cells, node.children.map(c => c.move))
         // console.log(cells.map((arr) => arr.slice()))
         let [,, row] = addPieceNoCopy(cells, play, player);
-        // console.log(cells.map((arr) => arr.slice()))
-        console.log(`Parent: ${node.parent ? node.parent.move : ''},Play: ${play}`)
-        console.log(cells)
-        console.log(isTerminal(cells, row, play))
-
-        if (isTerminal(cells, row, play) == -1) {
-            node.children.push(new GameNode(node, play))
-            player = player == 1 ? 2 : 1
-        } else {
-            return [node, cells, player]
-        }
-        
+        // console.log(cells)
+        // console.log(isTerminal(cells, row, play))
+        // if (play == 5 && level < 5) {
+        //     console.log(`Parent: ${node.parent ? node.parent.move : ''}, Play: ${play}, Level: ${level}`)
+        //     console.log(save.map((arr) => arr.slice()))
+        //     console.log(cells.map((arr) => arr.slice()))
+        //     console.log(isTerminal(cells, row, play))
+        // }
+        let terminality = isTerminal(cells, row, play)
+        node.children.push(new GameNode(node, play, terminality))
+        player = player == 1 ? 2 : 1
         return [node.children[node.children.length - 1], cells, player]
     }
 
@@ -80,9 +82,14 @@ export class Tree {
             turn++
         }
         // assume computer is player 2
-        let base_utility = state == 0 ? -0.3 : (state == 2 ? 1 : -1)
-        let turn_factor = 1/turn 
-        base_utility -= turn_factor
+        // let base_utility = state == 0 ? -0.3 : (state == 2 ? 1 : -1)
+        // let turn_factor = 1/turn 
+        // base_utility -= turn_factor
+        return this.utilityFromTerminality(state)
+    }
+
+    utilityFromTerminality(terminality: number) {
+        let base_utility = terminality == 0 ? 0.3 : (terminality == 2 ? 1 : 0)
         return base_utility
     }
 
@@ -95,14 +102,19 @@ export class Tree {
         }
     }
 
-    update() {
-        let [leafNode, grid, player] = this.select()
-        let utility = this.playout(grid, player)
+    update(grid: number[][]) {
+        let [leafNode, new_grid, player] = this.select(grid)
+        let utility
+        if (leafNode.terminality == -1) {
+            utility = this.playout(new_grid, player)
+        } else {
+            utility = this.utilityFromTerminality(leafNode.terminality)
+        }
         this.backPropagate(leafNode, utility)
     }
 }
 
-function UCB1(parentNode: GameNode, node: GameNode, player: number){
+export function UCB1(parentNode: GameNode, node: GameNode, player: number){
     let utility = player == 2 ? node.won / node.total : 1 - node.won / node.total
     
     if (parentNode.total != 0) {
@@ -116,7 +128,7 @@ function UCB1(parentNode: GameNode, node: GameNode, player: number){
     return utility
 }
 
-function getRandomPlay(grid: number[][], blacklist: number[] = []): number {
+export function getRandomPlay(grid: number[][], blacklist: number[] = []): number {
     let plays = []
     for (let col = 0; col < grid[0].length; col++) {
         if (!grid[0][col] && !blacklist.includes(col)) {
@@ -128,7 +140,7 @@ function getRandomPlay(grid: number[][], blacklist: number[] = []): number {
     return play 
 }
 
-function getRandomInt(max: number): number {
+export function getRandomInt(max: number): number {
   return Math.floor(Math.random() * (max + 1));
 }
 
